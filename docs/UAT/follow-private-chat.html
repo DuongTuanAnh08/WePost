@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UAT - Follow & Private Chat</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: #2c3e50;
+        }
+
+        .section {
+            background: #f9f9f9;
+            border-left: 4px solid #3498db;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+        }
+
+        ul {
+            margin-top: 0;
+        }
+
+        .high-risk {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Tài liệu Kiểm Thử Người Dùng (UAT)</h1>
+    <h2>Tính năng: Theo dõi Người dùng & Nhắn tin riêng tư 1-1</h2>
+
+    <div class="section">
+        <h3>1. Mục tiêu (Objective)</h3>
+        <ul>
+            <li>Xây dựng chức năng cho phép bấm "Theo dõi" (Follow) nhau trên trang Hồ sơ.</li>
+            <li>Hai người cùng theo dõi nhau sẽ trở thành Bạn bè và có thể chat riêng tư.</li>
+            <li>Cải tiến hệ thống WebSockets từ Chat chung thành Chat 1-1 (Private Message) bảo mật cao.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>2. Cốt truyện người dùng (User Story)</h3>
+        <ul>
+            <li>Người dùng vào Hồ sơ của người khác để bấm Theo dõi / Hủy Theo Dõi.</li>
+            <li>Mở trang Tin nhắn và lấy danh sách Bạn bè chuẩn xác bên cột trái.</li>
+            <li>Khi nhấp vào tên một người bạn, tin nhắn được tải và có thể chat Real-time với riêng người đó. Người
+                ngoài không thấy được nội dung.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>3. Phạm vi công việc (Scope)</h3>
+        <ul>
+            <li><strong>Java Backend:</strong> Tạo <code>FriendDAO</code>, cập nhật <code>ProfileServlet</code> (Xử lý
+                nút bấm Theo dõi), <code>ChatServlet</code> (Load Friend list), và <code>ChatEndpoint</code> (Xử lý
+                Endpoint socket chat 1-1 mapping Session).</li>
+            <li><strong>Frontend JSP:</strong> Chỉnh sửa Javascript WebSockets ở <code>chat.jsp</code> từ Broacast sang
+                Gửi đúng Tên người nhận. Bắt sự kiện Click nút Follow ở giao diện <code>profile.jsp</code>.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>4. Ca kiểm thử chức năng (Functional Test Cases)</h3>
+        <ul>
+            <li><strong>TC01:</strong> Người A bấm Theo dõi người B => Trạng thái lưu DB là A Following B.</li>
+            <li><strong>TC02:</strong> Người A bấm gửi Hủy Theo dõi => Thao tác Database Hủy bỏ Row Follow/Update Status
+                thành công.</li>
+            <li><strong>TC03:</strong> A và B cùng thiết lập theo dõi nhau => Sang Chat được mở khóa giao diện "Bạn Bè",
+                thấy tên đối diện bên thanh Sidebar.</li>
+            <li><strong>TC04:</strong> 2 Browser (1 Chrome thường, 1 Chrome ẩn danh) nhắn với nhau => Tin nhảy Real-time
+                chính xác 1-1, log Console Server Java hiển thị truyền chéo.</li>
+            <li><strong>TC05:</strong> Các Message gửi/nhận phải được lưu vào mảng <code>MessageHistory</code> riêng cho
+                cặp A-B, không bị lộ ra ngoài với C.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>5. Biên kiểm thử & Trường hợp Ngoại lệ (Edge/Boundary/Negative Testing)</h3>
+        <ul>
+            <li>Người dùng dùng Inspect / Postman cố tình ép lệnh Follow chính tài khoản mình => Database/Backend cấm
+                không cho vào (Bắt Exception SQL hoặc chặn IF).</li>
+            <li>Giới hạn màn hình chat tải danh sách tối đa 50-100 bạn bè để chống sập DOM trình duyệt trên điện thoại
+                yếu.</li>
+            <li>Người dùng A dùng Hacker scripts gửi gói WebSocket nặc danh (Sửa Tên người gửi là B, gửi cho C) =>
+                Endpoint phải thẩm định chéo bằng HTTP Session có khớp Tên đăng nhập gốc hay không trước khi chạy lệnh.
+            </li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>6. Tác động - Hiệu suất và Bảo mật (Impact)</h3>
+        <ul>
+            <li><strong>Bảo mật:</strong> Cần xử lý kĩ thuật Encoding JSON chống lỗ hổng XSS vào các Tin nhắn cá nhân.
+                Đếm cẩn thận <code>session.getId()</code>.</li>
+            <li><strong>Cơ sở dữ liệu:</strong> Tạo bảng mapping dữ liệu tăng tải vào bảng <code>Friends</code> dựa vào
+                File <code>database.sql</code> sẵn có của dự án.</li>
+            <li><strong>Hiệu suất:</strong> <code>ServerEndpoint</code> chuyển từ 1 vòng lặp Set đơn thuần sang
+                <code>ConcurrentHashMap&lt;String, Session&gt;</code> để bắt Map Tên Người Dùng -> Màn hình Đang Mở.
+            </li>
+            <li><strong>Mức độ rủi ro:</strong> <span class="high-risk">Cao (High Risk - Level Core Override)</span> do
+                tháo dỡ hoàn toàn luồng chat Global cũ và móc chặt vào SQL Server Friends Table.</li>
+            <li><strong>Rollback:</strong> Khôi phục File code WebSockets thuần gốc tại commit dự án gần nhất.</li>
+        </ul>
+    </div>
+
+    <hr>
+    <p><em>Xin vui lòng đọc và phê duyệt TÀI LIỆU UAT HIỂN THỊ TRÊN MÀN HÌNH HTML NÀY bằng cách nói <b>"Đồng ý tiến hành
+                làm chức năng Theo Dõi & Nhắn tin riêng"</b> để AI bắt đầu xây dựng tầng Model/Cơ sở dữ liệu Database
+            Java!</em></p>
+</body>
+
+</html>

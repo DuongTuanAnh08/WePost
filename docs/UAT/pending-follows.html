@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UAT - Những người muốn Theo dõi lại</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: #2c3e50;
+        }
+
+        .section {
+            background: #f9f9f9;
+            border-left: 4px solid #3498db;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+        }
+
+        ul {
+            margin-top: 0;
+        }
+
+        .low-risk {
+            color: #27ae60;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Tài liệu Kiểm Thử Người Dùng (UAT)</h1>
+    <h2>Tính năng: Chờ phản hồi kết bạn (Pending Follows)</h2>
+
+    <div class="section">
+        <h3>1. Mục tiêu (Objective)</h3>
+        <ul>
+            <li>Giúp người dùng không bỏ sót những tài khoản lạ đã nhấn chữ "Theo dõi" mình trước đó.</li>
+            <li>Thúc đẩy việc bạn nhấn "Theo dõi lại" để 2 bên chính thức trở thành <strong>Bạn Bè Mutual</strong> và
+                được phép bật Chat riêng tư.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>2. Cốt truyện người dùng (User Story)</h3>
+        <ul>
+            <li>Tôi đăng nhập WePost và ấn vào phần Khám phá.</li>
+            <li>Thay vì chỉ thấy list người lạ, tôi bất ngờ thấy phía trên cùng hiện khung <em>"Những người đã theo dõi
+                    hoặc muốn nhắn tin cho bạn"</em>.</li>
+            <li>Tôi vào xem thử người đó là ai. Nếu ưng ý, tôi nhấn Theo Dõi (Follow Back). Từ giờ họ trở thành Bạn bè
+                xuất hiện trong Sidebar Chat.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>3. Phạm vi công việc (Scope)</h3>
+        <ul>
+            <li><strong>Java Backend:</strong> Tạo hàm `FriendDAO.getPendingFollowers(myUserId)` để truy vấn SQL những
+                đối tượng có mũi tên Follow hướng tới Mình nhưng Mình chưa có mũi tên quay lại. Truyền tham số ra
+                Servlet `explore.jsp`.</li>
+            <li><strong>Frontend JSP:</strong> Nếu biến Danh sách Trờ Phản Hồi rỗng thì bỏ qua. Nếu có từ 1 người trở
+                lên thì vẽ ra một cụm giao diện Card mượt mà màu xanh để tôn vinh những người hâm mộ này!</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>4. Ca kiểm thử chức năng (Functional Test Cases)</h3>
+        <ul>
+            <li><strong>TC01:</strong> Chẳng có ai theo dõi tôi cả &rarr; Phần Khám phá chỉ hiện Ô Tìm kiếm và danh sách
+                Gợi ý người lạ. Khung kết bạn "tàng hình".</li>
+            <li><strong>TC02:</strong> Alex bấm theo dõi Sarah. Sarah truy cập phần Khám Phá &rarr; Alex chễm chệ ngay
+                hàng đầu màn hình vinh danh "Những người muốn kết nối"!</li>
+            <li><strong>TC03:</strong> Khung Gợi ý cộng đồng (ở phía dưới màn hình Khám Phá) tự động <strong>LOẠI
+                    BOẢ</strong> Alex để không bị lặp lác thẻ (Duplicate cards).</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>5. Biên kiểm thử & Trường hợp Ngoại lệ (Edge/Boundary/Negative Testing)</h3>
+        <ul>
+            <li>Trường hợp người nổi tiếng có 1.000.000 Follower chưa accept &rarr; Lệnh SQL sẽ ép khuôn
+                <code>SELECT TOP 10</code> người mới bấm theo dõi gần đây nhất để Server không tắc nghẹn.</li>
+            <li>Truy vấn an toàn, không thay đổi DB khi load trang.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>6. Tác động - Hiệu suất và Bảo mật (Impact)</h3>
+        <ul>
+            <li><strong>Bảo mật:</strong> Tương tự Khám Phá gốc, vẫn tuân thủ In JSTL qua lệnh
+                <code>&lt;c:out&gt;</code> để chặn mọi XSS Scripts.</li>
+            <li><strong>Cơ sở dữ liệu:</strong> Sử dụng câu lệnh EXISTS/NOT EXISTS kinh điển trong bộ máy T-SQL của SQL
+                Server để kiểm đồ thị Follow 2 chiều siêu nhanh bằng Index Column.</li>
+            <li><strong>Hiệu suất:</strong> Tốc độ lấy trang thêm dưới 12 milliseconds do lệnh Select lồng đơn giản.
+            </li>
+            <li><strong>Mức độ rủi ro:</strong> <span class="low-risk">Rất an toàn (Low)</span> do đây chỉ là Tính năng
+                Trang Trí (UI Addon) đính kèm bản Khám phá cũ.</li>
+            <li><strong>Rollback:</strong> Nếu sập, dẹp xóa đoạn Code Render HTML ở tệp <code>explore.jsp</code> và xóa
+                biến gọi hàm `exploreUsers` đi là xong.</li>
+        </ul>
+    </div>
+
+    <hr>
+    <p><em>Hãy đọc kỹ tài liệu HTML này. Gửi lệnh <b>"Duyệt danh sách theo dõi lại trên phần khám phá"</b> để tôi tiến
+            hành sửa bộ lọc Backend và Vẽ giao diện nổi bật nhé!</em></p>
+</body>
+
+</html>

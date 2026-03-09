@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UAT - Chỉnh sửa Ảnh Bìa (Cover Image)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: #2c3e50;
+        }
+
+        .section {
+            background: #f9f9f9;
+            border-left: 4px solid #3498db;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+        }
+
+        ul {
+            margin-top: 0;
+        }
+
+        .medium-risk {
+            color: #f39c12;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Tài liệu Kiểm Thử Người Dùng (UAT)</h1>
+    <h2>Tính năng: Chỉnh sửa và Tải lên Ảnh bìa (Cover Image)</h2>
+
+    <div class="section">
+        <h3>1. Mục tiêu (Objective)</h3>
+        <ul>
+            <li>Người dùng ngoài việc cấu hình Avatar (Ảnh đại diện), giờ đây có thể tùy chỉnh hình nền Ảnh Bìa trải
+                rộng trên đỉnh trang Hồ sơ cá nhân.</li>
+            <li>Tăng tính cá nhân hóa và chuyên nghiệp cho WePost.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>2. Cốt truyện người dùng (User Story)</h3>
+        <ul>
+            <li>Là một người dùng, nhìn cái Ảnh bìa màu xám ở trang Hồ Sơ rất "tù túng và nhạt nhẽo".</li>
+            <li>Tôi vào mục "Chỉnh sửa hồ sơ" &rarr; Và Ồ, có một mục tải lên Ảnh Cover nằm cạnh nút tải Avatar!</li>
+            <li>Tôi chọn một hình phong cảnh biển lớn cực đẹp từ máy của mình, xem trước lúc nó giãn ra ngay trên web.
+                Ấn Lưu!</li>
+            <li>Giao diện nẩy lại trang Hồ sơ, hình nền biển tuyệt đẹp làm tôi tự tin hẳn lên khi nói chuyện với bạn bè!
+            </li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>3. Phạm vi công việc (Scope)</h3>
+        <ul>
+            <li><strong>Mở rộng DB:</strong> Chạy câu lệnh
+                <code>ALTER TABLE Users ADD CoverUrl NVARCHAR(255) DEFAULT 'default-cover.jpg'</code>.</li>
+            <li><strong>Java Backend:</strong> `User.java` thêm biến <code>coverUrl</code>. `UserDAO.java` đọc thêm Cột
+                mới vào `mapResultSetToUser()`. Sửa hàm `updateProfile(..., avatarUrl, coverUrl)`.</li>
+            <li><strong>Servlet `EditProfileServlet.java`:</strong> Quét qua luồng `POST` để nhặt thêm File tên
+                <code>coverFile</code> (MultiPart). Sinh chuỗi thẻ Tên UUID an toàn để Save vào Server cục bộ.</li>
+            <li><strong>Frontend:</strong> Biến đổi CSS <code>.profile-cover</code> ở `profile.jsp` từ hình chữ nhật
+                trơn 1 màu sang thẻ HTML <code>&lt;img&gt;</code> trỏ đúng đường dẫn ảnh (giống Avatar). Sửa file JS
+                Preview Live ở `edit-profile.jsp` để load được 2 ảnh cùng lúc.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>4. Ca kiểm thử chức năng (Functional Test Cases)</h3>
+        <ul>
+            <li><strong>TC01:</strong> Bấm "Chỉnh sửa hồ sơ", User upload cả 2 Ảnh cùng lúc, Form bấm Submit &rarr; Hệ
+                thống cắt 2 tệp cho vào Thư mục và đổi mã Hash. Giao diện thay cả cặp Bìa và Avt.</li>
+            <li><strong>TC02:</strong> User không Upload gì cả, ấn Lưu thôi &rarr; Servlet phát hiện dung lượng File gửi
+                lên = 0 Bytes, nó sẽ Giữ Nguyên toàn bộ các đường dẫn ảnh hiện tại, không gán <code>NULL</code> vào DB.
+            </li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>5. Biên kiểm thử & Trường hợp Ngoại lệ (Edge/Boundary/Negative Testing)</h3>
+        <ul>
+            <li><strong>Hack Quyền (Mã Độc ZIP, BASH, PDF):</strong> Tương tự thư viện Avatar, nếu File Bìa bị bắt dính
+                <code>ContentType</code> ảo (Trái với <code>image/...</code>), Backend chặn ngang với báo lỗi, rớt
+                request, Server an toàn.</li>
+            <li><strong>Ảnh Rất Rất To:</strong> Bìa mặc định cho phép tối đa 10 MB, vượt size sẽ bị giật sập nhờ Filter
+                Servlet. Dùng <code>object-fit: cover</code> trên CSS đảm bảo các bức Pixel bự không bao giờ đâm thủng
+                màn hình điện thoại/Layout Web.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>6. Tác động - Cơ sở dữ liệu và Rollback (Impact)</h3>
+        <ul>
+            <li><strong>Cơ sở dữ liệu:</strong> Đây là Tính năng có <strong>CẬP NHẬT (ALTER) Bảng</strong> nên bắt buộc
+                bạn phải dán lệnh phụ trợ vào SQL Server bằng tay.</li>
+            <li><strong>Mức độ rủi ro:</strong> <span class="medium-risk">Trung Bình (Medium)</span> vì CSDL có tác động
+                Schema. Ảnh hỏng dễ gây Crash giao diện nếu quên Try-Catch DB Migration.</li>
+            <li><strong>Rollback:</strong> Khóa endpoint MultiPart <code>/edit-profile</code>, trả lại giao diện Ảnh màu
+                xám cố định ở thẻ class.</li>
+        </ul>
+    </div>
+
+    <hr>
+    <p><em>Bạn đã sẵn sàng để có giao diện Đăng Ảnh Bìa chưa? Phản hồi duyệt UAT biểu mẫu chỉnh sửa Hồ sơ trên bằng câu
+            lệnh <b>"Duyệt làm tiếp phần ảnh bìa"</b>. Tôi sẽ hướng dẫn cấu trúc lại cái Bảng SQL đầu tiên nhé!</em></p>
+</body>
+
+</html>

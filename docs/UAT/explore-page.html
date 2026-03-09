@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UAT - Trang Khám Phá</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: #2c3e50;
+        }
+
+        .section {
+            background: #f9f9f9;
+            border-left: 4px solid #3498db;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+        }
+
+        ul {
+            margin-top: 0;
+        }
+
+        .low-risk {
+            color: #27ae60;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Tài liệu Kiểm Thử Người Dùng (UAT)</h1>
+    <h2>Tính năng: Trang Khám Phá (Explore Users)</h2>
+
+    <div class="section">
+        <h3>1. Mục tiêu (Objective)</h3>
+        <ul>
+            <li>Người dùng mới có thể xem đề xuất kết bạn/theo dõi trên nền tảng.</li>
+            <li>Có thanh tìm kiếm (Search Bar) để gõ tên bạn bè trực tiếp ra nhanh thay vì cuộn NewFeed mãi không thấy.
+            </li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>2. Cốt truyện người dùng (User Story)</h3>
+        <ul>
+            <li>Tôi ấn vào thẻ "Khám phá" nằm bên tay trái của Trang chủ hoặc Tin Nhắn.</li>
+            <li>Tôi gõ từ khóa vào Ô Tìm kiếm và Enter. Hệ thống tìm duyệt trong tích tắc ra những người tên giống vậy.
+            </li>
+            <li>Tôi bấm vào khối thông tin (Card) của người tôi thích, web chuyển tôi sang xem Hồ sơ cá nhân của họ để
+                tôi ấn "Theo dõi".</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>3. Phạm vi công việc (Scope)</h3>
+        <ul>
+            <li><strong>Java Backend:</strong> Servlet mới <code>ExploreServlet.java</code> để bắt và gỡ thông số tìm
+                kiếm <code>?q=</code>. Viết hàm <code>UserDAO.searchUsers(keyword, myUserId)</code> giới hạn Limit SQL
+                truy xuất danh sách người lạ.</li>
+            <li><strong>Frontend JSP:</strong> Trang lưới hiển thị các khối User đẹp mắt <code>explore.jsp</code> kết
+                hợp thanh input tìm kiếm to nằm trên. Liên kết tất cả File sang thẻ <code>/explore</code> ở Navbar.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>4. Ca kiểm thử chức năng (Functional Test Cases)</h3>
+        <ul>
+            <li><strong>TC01:</strong> Bấm link Khám phá &rarr; Hệ thống in ra (Render) khoảng 50 tên người lạ. (Cấm in
+                cả chính tên tôi).</li>
+            <li><strong>TC02:</strong> Tìm từ khóa "Sarah" &rarr; Hệ thống trả về User Sarah Designer.</li>
+            <li><strong>TC03:</strong> Tìm từ "Không có ai" &rarr; Trang Web in ra dòng thông báo rất thân thiện "Rất
+                tiếc, chưa tìm thấy ai!".</li>
+            <li><strong>TC04:</strong> Click vào Avatar của Sarah hoặc phần tên cô ấy &rarr; URL nhảy đúng sang
+                <code>/profile?u=sarah</code> mà không lỗi.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>5. Biên kiểm thử & Trường hợp Ngoại lệ (Edge/Boundary/Negative Testing)</h3>
+        <ul>
+            <li>Ngăn việc một ông hacker cố nhồi vài triệu lệnh Search làm nghẽn cổ chai SQL Server bằng cách bắt cứng
+                <code>SELECT TOP 50</code> trong DAO.</li>
+            <li>Tham số trống (Trang khám phá trắng) hiển thị User được Index mới nhất để kích thích người mới chơi bấm.
+            </li>
+            <li>Nếu ai chưa Đăng nhập lượn lờ vào Link Khám phá, họ sẽ gặp màn hình Login.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>6. Tác động - Hiệu suất và Bảo mật (Impact)</h3>
+        <ul>
+            <li><strong>Bảo mật:</strong> <code>&lt;c:out&gt;</code> JSTL được bọc cẩn thận quanh tên các đối tượng
+                Search nhằm ngừa DOM XSS Injection.</li>
+            <li><strong>Cơ sở dữ liệu:</strong> Hoàn toàn không ghi/sửa gì cả. Lệnh truy vấn rất nhanh và an toàn.</li>
+            <li><strong>Hiệu suất:</strong> Tải nhẹ tênh dưới 50 mili-giây cho truy vấn tên.</li>
+            <li><strong>Mức độ rủi ro:</strong> <span class="low-risk">Thấp (Low)</span> do tách biệt khỏi các cụm Chat
+                và Post.</li>
+            <li><strong>Rollback:</strong> Mất 3s xóa Servlet <code>Explore</code> và JSP tương ứng nếu sập.</li>
+        </ul>
+    </div>
+
+    <hr>
+    <p><em>Bạn vui lòng phản hồi duyệt UAT Khám Phá trên bằng câu lệnh <b>"Đồng ý làm Trang khám phá"</b> để AI bắt tay
+            ngay vào Backend Servlet WePost nhé!</em></p>
+</body>
+
+</html>

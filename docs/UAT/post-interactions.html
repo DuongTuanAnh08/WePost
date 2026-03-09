@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UAT - Tương tác Bài Viết (Thích, Bình luận, Đăng lại)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: #2c3e50;
+        }
+
+        .section {
+            background: #f9f9f9;
+            border-left: 4px solid #3498db;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+        }
+
+        ul {
+            margin-top: 0;
+        }
+
+        .high-risk {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Tài liệu Kiểm Thử Người Dùng (UAT)</h1>
+    <h2>Tính năng: Thích, Bình luận, Đăng lại (Like, Comment, Repost)</h2>
+
+    <div class="section">
+        <h3>1. Mục tiêu (Objective)</h3>
+        <ul>
+            <li>Người dùng có thể <b>thể hiện cảm xúc (Thích)</b>, <b>nêu lên quan điểm (Bình luận)</b>, và <b>chia sẻ
+                    lại (Đăng lại)</b> những bài viết tâm đắc từ Trang Chủ WePost.</li>
+            <li>Đây là tính năng cốt lõi bắt buộc phải có cho một mạng xã hội thực thụ. Gắn kết cộng đồng với hệ thống
+                đếm chỉ số bài viết.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>2. Cốt truyện người dùng (User Story)</h3>
+        <ul>
+            <li>Là một người dùng, khi lướt Trang Chủ WePost, tôi thấy 3 Nút (Thích, Đăng lại, Bình luận) ngay bên dưới
+                mỗi Status nhưng chúng chưa bấm được.</li>
+            <li>Tôi nhấn vào biểu tượng <b>Trái Tim (Thích)</b>, nó sáng màu Đỏ, kế bên ghi số "1 lượt thích".</li>
+            <li>Sau đó tôi nhấn nút <b>Quả Bóng Thoại (Bình luận)</b>, hiện ra ngay khung chat để nhập chữ. Tôi gõ "Bài
+                này hay quá!" rổi Enter. Dòng chữ tôi lọt thỏm ngay dưới bài viết.</li>
+            <li>Tôi lại bấm vào nút <b>Mũi Tên (Đăng Lại)</b>. Hệ thống tự động Bê toàn bộ bài này về Tường (Profile)
+                của tôi và hiện ghi chú "A đã đăng lại status của B".</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>3. Phạm vi công việc (Scope)</h3>
+        <ul>
+            <li><strong>Sửa DB SQL Server:</strong>
+                Tạo Thể Loại bảng hoàn toàn Rời (Bảng Phụ) bao gồm: <code>Likes(UserID, PostID)</code>,
+                <code>Comments(UserID, PostID, Ndung)</code>. Và cần
+                <code>ALTER TABLE Posts ADD OriginalPostID INT NULL</code> để ghim trạng thái Đăng Lại (Repost).
+            </li>
+            <li><strong>Java Backend (`PostDAO.java` thần thánh):</strong> Viết 3 cái Query Khổng Lồ cho Trang chủ: ĐẾM
+                Like, ĐẾM Cmt, ĐẾM Repost; đồng thời gán <code>boolean isLiked</code> để vẽ Tim Đỏ cho User. Viết thêm
+                các Java Servlet `/api/like`, `/api/comment`, `/api/repost` tiếp nhận hành động (Ajax). </li>
+            <li><strong>Frontend:</strong> Update 2 trang búa tạ <code>home.jsp</code> và <code>profile.jsp</code> bằng
+                kịch bản AJAX JavaScript (Nút Like đỏ lên sống động mà ko cần F5 làm đứt mạch Lướt Web). Trượt mở Khung
+                Comment cũng không cần f5.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>4. Ca kiểm thử chức năng (Functional Test Cases)</h3>
+        <ul>
+            <li><strong>TC_LIKE:</strong> Bấm Nút Trái tim, số <code>0</code> biến thành con số <code>1</code>. Bấm phát
+                nữa Trái tim Xám lại, bộ đếm tụt về <code>0</code>. Refresh Trang thì Nút Trái tim vẫn lưu Đỏ/Xám tùy
+                trạng thái trước khi Refresh.</li>
+            <li><strong>TC_COMMENT:</strong> Ấn Nút Bình Luận, Khung Textarea trỏ xuống. Gõ "abc" và Ấn Enter &rarr; Bắn
+                lên luồng Cmt "abc" ở luôn dưới Bài. Không cần load lại trang.</li>
+            <li><strong>TC_REPOST:</strong> Ấn Đăng lại, Khung báo Success xanh hiện lên "Đăng lại thành công!". Mở Tab
+                Profile kiểm tra, thấy ngay bài viết y chang bài Gốc (Của User B) nằm trên tường nhà.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>5. Biên kiểm thử & Trường hợp Ngoại lệ (Edge/Boundary/Negative Testing)</h3>
+        <ul>
+            <li><strong>Anti-Spam Click (Hack Like Nhanh):</strong> Spam click Like/Unlike 100 lần/giây &rarr; UI JS sẽ
+                Debounce (treo tạm thời lệnh Click), chặn không cho chênh lệch số giữa Giao Diện & Backend sai đi.</li>
+            <li><strong>Hack Comment Sạch Sẽ (XSS SQL):</strong> Khung bình luận gõ `DROP TABLE`, `
+                <script>hack</script>` &rarr; Java chặn đứng bằng Parameters, JSTL `<c:out>` vô hiệu hóa Scripts. Cực kỳ
+                    An toàn vĩnh viễn!
+            </li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>6. Tác động - Cơ sở dữ liệu, Hiệu năng (Impact)</h3>
+        <ul>
+            <li><strong>Cơ sở dữ liệu:</strong> Đây là Tính năng nặng Đô nhất của một MXH vì BẢNG TRUNG GIAN xuất hiện
+                (Likes & Comments). Bắt buộc phải <code>LEFT JOIN</code> hoặc dùng <code>SubQuery</code> trong `PostDAO`
+                để tính Like lúc Đọc Feed. Sẽ thiết kế Optimize Tối Ưu, không giật lag.</li>
+            <li><strong>Mức độ rủi ro:</strong> <span class="high-risk">Cao (High)</span> vì động vào Core của
+                `home.jsp` và Dựng hàng loạt API Ajax JS, cộng thêm Lệnh Mở rộng Database.</li>
+            <li><strong>Rollback:</strong> Đóng 3 API này ở Controller, Cắt bỏ thẻ AJAX phía `home.jsp`. Mọi thứ trở lại
+                nguyên sinh.</li>
+        </ul>
+    </div>
+
+    <hr>
+    <p><em>Bạn đã sẵn sàng cho sức sống của WePost chưa? Phản hồi duyệt UAT bộ 3 tính năng Khổng lồ này bằng câu lệnh
+            <b>"Duyệt làm phần tương tác bài viết"</b> để AI bắt đầu nhồi Database nhé!</em></p>
+</body>
+
+</html>

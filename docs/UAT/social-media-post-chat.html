@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UAT - WePost: Tính năng Đăng bài, Nhắn tin (WebSockets Real-time), Trang cá nhân và Khám phá</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: #2c3e50;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid #ddd;
+        }
+
+        th,
+        td {
+            padding: 10px;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .case {
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>UAT - WePost: Tính năng Đăng bài, Nhắn tin (WebSockets Real-time), Trang cá nhân và Khám phá</h1>
+
+    <h2>Feature Name</h2>
+    <p>Mạng xã hội WePost (Trang chủ chung, Tìm kiếm, Đăng bài, Nhắn tin Real-time WebSockets, Trang cá nhân)</p>
+
+    <h2>Objective</h2>
+    <p>Ngôn ngữ sử dụng: Java Servlet, Java API for WebSocket, JSP/HTML, CSS, SQL Server.<br>
+        Mục tiêu: Xây dựng nền tảng mạng xã hội cơ bản. Nổi bật với hệ thống Trang chủ hiển thị bài viết từ cộng đồng,
+        thanh tìm kiếm chủ đề. Cung cấp đầy đủ các tính năng tương tác với hệ thống Nhắn tin theo thời gian thực
+        (Real-time) sử dụng WebSockets, và thiết lập Profile cá nhân. Hệ thống phải đảm bảo hoạt động an toàn, bảo mật
+        và lưu trữ bằng SQL Server.</p>
+
+    <h2>Scope</h2>
+    <ol>
+        <li><strong>Trang chủ chính (Khám phá & Đăng bài):</strong> Hiển thị toàn bộ các bài đăng của người dùng trên
+            toàn hệ thống (cả người đã theo dõi và chưa theo dõi). Người dùng có thể soạn bài đăng mới từ trang này.
+        </li>
+        <li><strong>Tìm kiếm (Search):</strong> Thanh tìm kiếm trên trang chủ cho phép tìm bài đăng theo từ khóa (chủ đề
+            bài viết).</li>
+        <li><strong>Tính năng nhắn tin (Chat Real-time):</strong> Cho phép xem danh sách người dùng và gửi/nhận tin nhắn
+            ngay lập tức mà không cần tải lại trang thông qua kết nối <strong>WebSocket</strong>.</li>
+        <li><strong>Trang cá nhân (Profile):</strong> Hiển thị Avatar, Chú thích (Bio), và danh sách các bài đăng do
+            chính người dùng đó đã đăng. Cho phép cập nhật thông tin cá nhân.</li>
+        <li><strong>Trang hoạt động (Following Feed):</strong> Một tab hoặc trang riêng hiển thị các bài đăng của những
+            người bạn đã theo dõi.</li>
+    </ol>
+
+    <h2>User Story</h2>
+    <ul>
+        <li>Là một người dùng, tôi muốn xem Trang chủ chính với bài viết từ nhiều người khác (theo dõi/chưa theo dõi) để
+            khám phá nội dung mới.</li>
+        <li>Là một người dùng, tôi muốn có thanh tìm kiếm trên trang chủ để tìm kiếm các bài viết theo chủ đề yêu thích.
+        </li>
+        <li>Là một người dùng, tôi muốn có trang cá nhân của riêng mình để cập nhật Avatar, viết chú thích bản thân và
+            xem lại các bài tôi đã đăng.</li>
+        <li>Là một người dùng, tôi muốn nhắn tin trò chuyện trực tiếp (Real-time) với bạn bè hoặc người dùng khác ngay
+            lập tức không cần tải lại trang.</li>
+    </ul>
+
+    <h2>Functional Test Cases</h2>
+
+    <h3>1. Nguồn dữ liệu Trang chủ & Đăng bài</h3>
+    <table>
+        <tr>
+            <th>Test ID</th>
+            <th>Mô tả</th>
+            <th>Đầu vào</th>
+            <th>Kết quả mong đợi</th>
+        </tr>
+        <tr>
+            <td>TC-HOME-01</td>
+            <td>Hiển thị Trang chủ</td>
+            <td>Đăng nhập tài khoản, truy cập vào URL /home.</td>
+            <td>Danh sách toàn bộ bài viết từ cộng đồng (theo dõi và chưa theo dõi) được hiển thị, ưu tiên bài viết mới.
+            </td>
+        </tr>
+        <tr>
+            <td>TC-POST-01</td>
+            <td>Đăng bài thành công</td>
+            <td>Tại Trang chủ, nhập "Chào WePost", nhấn Đăng.</td>
+            <td>Bài đăng được lưu vào CSDL. Hiển thị ngay trên Trang cá nhân và đẩy lên Trang chủ chung.</td>
+        </tr>
+    </table>
+
+    <h3>2. Tìm kiếm Bài viết (Search)</h3>
+    <table>
+        <tr>
+            <th>Test ID</th>
+            <th>Mô tả</th>
+            <th>Đầu vào</th>
+            <th>Kết quả mong đợi</th>
+        </tr>
+        <tr>
+            <td>TC-SRCH-01</td>
+            <td>Tìm kiếm theo từ khóa có bài viết</td>
+            <td>Gõ "lập trình" vào ô Search, nhấn Enter.</td>
+            <td>Hiển thị kết quả danh sách bài viết nội dung liên quan tới "lập trình".</td>
+        </tr>
+        <tr>
+            <td>TC-SRCH-02</td>
+            <td>Tìm kiếm từ khóa không tồn tại</td>
+            <td>Gõ ký tự ngẫu nhiên vào ô Search.</td>
+            <td>Hiển thị thông báo "Không tìm thấy bài viết nào phù hợp".</td>
+        </tr>
+    </table>
+
+    <h3>3. Trang Cá nhân (Profile)</h3>
+    <table>
+        <tr>
+            <th>Test ID</th>
+            <th>Mô tả</th>
+            <th>Đầu vào</th>
+            <th>Kết quả mong đợi</th>
+        </tr>
+        <tr>
+            <td>TC-PROF-01</td>
+            <td>Xem trang cá nhân & Bạn bè</td>
+            <td>Truy cập trang cá nhân.</td>
+            <td>Hiển thị Avatar, Chú thích và Danh sách bài đăng.</td>
+        </tr>
+    </table>
+
+    <h3>4. Tính năng Nhắn tin (Nhắn tin Real-time WebSockets)</h3>
+    <table>
+        <tr>
+            <th>Test ID</th>
+            <th>Mô tả</th>
+            <th>Đầu vào</th>
+            <th>Kết quả mong đợi</th>
+        </tr>
+        <tr>
+            <td>TC-MSG-01</td>
+            <td>Gửi/Nhận tin nhắn thời gian thực</td>
+            <td>User A và User B mở cửa sổ chat. User A soạn "Alo" gửi cho User B.</td>
+            <td>Ngay khi A gửi, tin nhắn hiển thị ngay lập tức lên màn hình của B qua WebSocket không cần reload trang.
+            </td>
+        </tr>
+        <tr>
+            <td>TC-MSG-02</td>
+            <td>Lưu trữ lịch sử tin nhắn</td>
+            <td>User A reload lại trang chat.</td>
+            <td>Toàn bộ lịch sử tin nhắn cũ đã gửi/nhận trước đó được load lại từ CSDL SQL Server hiển thị đầy đủ.</td>
+        </tr>
+    </table>
+
+    <h2>Edge Cases</h2>
+    <ul>
+        <li>WebSocket bị đứt kết nối (mất mạng): Phía Client (JavaScript) cần có cơ chế tái kết nối tự động (Re-connect)
+            khi có mạng trở lại.</li>
+        <li>Dữ liệu gửi qua WebSocket sai định dạng (không phải JSON). Server cần try-catch bỏ qua và ngắt kết nối với
+            thông điệp sai.</li>
+    </ul>
+
+    <h2>Boundary Conditions</h2>
+    <ul>
+        <li>Ngăn chặn việc Flood mạng WebSocket (Gửi quá nhiều tin nhắn liên tục trong 1 giây).</li>
+    </ul>
+
+    <h2>Negative Testing</h2>
+    <ul>
+        <li>Client cố gắng kết nối WebSocket Endpoint mà không có HTTP Session Authentication. <br>
+            <strong>Kết quả mong đợi:</strong> Server Node chối bỏ kết nối (Disconnect Request trong Tầng cấu hình
+            WebSocket).
+        </li>
+    </ul>
+
+    <h2>Security Testing (Security Impact)</h2>
+    <ul>
+        <li><strong>SQL Injection:</strong> Mọi input (Nội dung bài viết, Tìm kiếm chủ đề, Tin nhắn) đều sử dụng
+            <code>PreparedStatement</code>.</li>
+        <li><strong>XSS (Cross-Site Scripting):</strong> Mọi nội dung text (đặc biệt là tin nhắn Real-time nhận qua
+            WebSocket) cần được HTML-encoded (Ví dụ: dùng <code>document.createTextNode()</code> thay vì
+            <code>innerHTML</code> khi render chuỗi trong Vanilla JS) trước khi đẩy ra View.</li>
+        <li><strong>WebSocket Auth Hijacking:</strong> WebSocket endpoint cần được bảo mật và xác thực thông qua quá
+            trình Handshake để đảm bảo truy cập từ User đã Login.</li>
+    </ul>
+
+    <h2>Performance Testing (Performance Impact)</h2>
+    <ul>
+        <li>Rủi ro tràn ngập bộ nhớ do quản lý WebSocket Session: Cần xóa session (<code>remove()</code>) khỏi danh sách
+            Concurrent Map trên Server khi kết nối đóng <code>onClose</code>.</li>
+    </ul>
+
+    <h2>Database Impact</h2>
+    <p>Các cấu trúc Table (SQL Server):</p>
+    <ul>
+        <li>Bảng <code>Users</code> (UserID, Username, PasswordHash, AvatarUrl, Bio, Role)</li>
+        <li>Bảng <code>Friends</code> (FriendshipID, User1_ID, User2_ID, Status)</li>
+        <li>Bảng <code>Posts</code> (PostID, UserID, Content, CreatedAt)</li>
+        <li>Bảng <code>Messages</code> (MessageID, SenderID, ReceiverID, Content, SentAt)</li>
+    </ul>
+
+    <h2>Rollback Plan (Rollback Impact)</h2>
+    <ul>
+        <li>Nếu WebSocket gặp lỗi quá tải bộ nhớ phân tán, tính năng nhắn tin sẽ được revert về chế độ tải trang truyền
+            thống.</li>
+    </ul>
+
+    <h2>Risk Level</h2>
+    <p>High (Tính năng Real-time WebSocket trên môi trường local với Java Servlet có thể phát sinh Resource Leak nếu
+        không dọn dẹp kết nối chết, Risk Level tăng từ Medium lên High).</p>
+
+    <hr>
+    <p><em>Vui lòng xem và phê duyệt UAT này trước khi triển khai code!</em></p>
+
+</body>
+
+</html>

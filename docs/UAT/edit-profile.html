@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UAT - Chỉnh sửa Hồ Sơ (Edit Profile)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: #2c3e50;
+        }
+
+        .section {
+            background: #f9f9f9;
+            border-left: 4px solid #3498db;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+        }
+
+        ul {
+            margin-top: 0;
+        }
+
+        .medium-risk {
+            color: #f39c12;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Tài liệu Kiểm Thử Người Dùng (UAT)</h1>
+    <h2>Tính năng: Chỉnh sửa Hồ sơ (Cập nhật Bio & Tên)</h2>
+
+    <div class="section">
+        <h3>1. Mục tiêu (Objective)</h3>
+        <ul>
+            <li>Cho phép cá nhân hóa tài khoản trên mạng xã hội WePost.</li>
+            <li>Hiển thị tên thật và thông điệp Tiểu sử (Bio) theo ý muốn cá nhân thay cho phiên bản mặc định lúc mới
+                đăng kí.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>2. Cốt truyện người dùng (User Story)</h3>
+        <ul>
+            <li>Là một người dùng, sau khi kết bạn và đăng bài, tôi thấy Bio mặc định của tôi quá nhàm chán.</li>
+            <li>Tôi vào mục Hồ sơ, bấm nút "Chỉnh sửa hồ sơ". Hệ thống mở ra một giao diện trang Form mới.</li>
+            <li>Tại đây, dữ liệu tên cũ và Bio cũ đã được điền sẵn. Tôi sửa nó lại, viết một tiểu sử thật "cool" và ấn
+                Lưu lại.</li>
+            <li>Giao diện nẩy lại trang Hồ sơ, bio mới đã được lên sóng với tất cả bạn bè!</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>3. Phạm vi công việc (Scope)</h3>
+        <ul>
+            <li><strong>Java Backend:</strong> `UserDAO.updateProfile(userId, fullName, bio)` chịu trách nhiệm Execute
+                Update lên CSDL.</li>
+            <li><strong>Servlet `EditProfileServlet.java`:</strong> Quản lý cả luồng GET (để load Form hiện thông tin cũ
+                lên `edit-profile.jsp`) và POST (nhận dữ liệu đệ trình, chống Injection, rồi nhồi thẳng vào `Session`
+                cho nóng hổi).</li>
+            <li><strong>Frontend:</strong> Giao diện `/edit-profile.jsp` tối giản với Input Field cho FullName, Textarea
+                cho Bio, và Button Lưu thông tin. Link sửa từ trang trang cá nhân `profile.jsp`.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>4. Ca kiểm thử chức năng (Functional Test Cases)</h3>
+        <ul>
+            <li><strong>TC01:</strong> Bấm "Chỉnh sửa hồ sơ", Web tải ra form nhưng không trắng tinh mà hiển thị rõ chữ
+                "Xin chào..." (dữ liệu cũ đang dùng).</li>
+            <li><strong>TC02:</strong> Nhập thông tin mới siêu dài (VD: 20 dòng tiểu sử) &rarr; Ấn lưu thành công. Khâu
+                cắt giảm tự động nếu vượt quá 255 kí tự cho an toàn Database.</li>
+            <li><strong>TC03:</strong> Dữ liệu chứa đoạn mã tấn công <code>&lt;script&gt;</code> &rarr; DB vẫn lưu Text
+                thuần túy, nhưng lúc Show ra bên ngoài Profile được BỌC cứng bởi JSTL <code>&lt;c:out&gt;</code> biến nó
+                thành ký tự vô hại.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>5. Biên kiểm thử & Trường hợp Ngoại lệ (Edge/Boundary/Negative Testing)</h3>
+        <ul>
+            <li><strong>Hack Quyền (IDOR):</strong> Bỏ hẳn trò truyền tham số User ID từ Form để phân quyền.
+                <code>EditProfileServlet</code> luôn luôn lấy ID từ chính cái <code>Session</code> của Browser đang nắm
+                giữ để Update DB. Tức là Hacker không thể Fake request chỉnh sửa Bio của bạn được.</li>
+            <li><strong>Bỏ trống tên gọi:</strong> Giao diện HTML5 Form sẽ bật tường lửa <code>required</code>, bắt bạn
+                phải nhập Tên thì mới cho qua Form (Backend cũng xác nhận <code>trim()</code>).</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>6. Tác động - Hiệu suất và Bảo mật (Impact)</h3>
+        <ul>
+            <li><strong>Bảo mật:</strong> Hoàn thành chặn đứng IDOR (Insecure Direct Object Reference) cực kỳ chuẩn xác
+                và vững chắc nhờ Session-based Binding.</li>
+            <li><strong>Cơ sở dữ liệu:</strong> Sử dụng lệnh chuẩn xác
+                <code>UPDATE Users SET FullName = ?, Bio = ? WHERE UserID = ?</code></li>
+            <li><strong>Hiệu suất:</strong> Quá nhẹ! Ghi Đè (Update) chỉ định 1 Bản Ghi trong CSDL diễn ra nháy mắt 1ms.
+            </li>
+            <li><strong>Mức độ rủi ro:</strong> <span class="medium-risk">Trung Bình (Medium)</span> vì CSDL có tác động
+                Update. Cần cẩn trọng khi Refresh Session để không lác tài khoản.</li>
+            <li><strong>Rollback:</strong> Khóa endpoint POST <code>/edit-profile</code>, trả lại giao diện Profile gốc
+                rỗng nút nhấn.</li>
+        </ul>
+    </div>
+
+    <hr>
+    <p><em>Bạn vui lòng phản hồi duyệt UAT biểu mẫu chỉnh sửa Hồ sơ trên bằng câu lệnh <b>"Duyệt làm phần chỉnh hồ
+                sơ"</b> để tao lao vào lập trình giao diện nhập liệu nhé!</em></p>
+</body>
+
+</html>
